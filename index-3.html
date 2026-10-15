@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>social networks — профиль</title>
+<meta name="description" content="Коротко обо мне и мои соцсети">
+<meta name="theme-color" content="#000000">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--text:#f1f3f2; --muted:#8e9792; --line:rgba(255,255,255,.12); --glass:rgba(8,10,9,.58)}
+*{box-sizing:border-box}
+body{-webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent}
+a,img{-webkit-user-drag:none; user-drag:none}
+.link::selection,.link *::selection{background:transparent}
+html,body{margin:0; height:100%; overflow:hidden; overscroll-behavior:none}
+body{
+  font-family:'Manrope',system-ui,sans-serif; color:var(--text); background:#000;
+  height:100vh; height:100dvh; display:flex; justify-content:center; align-items:center; padding:20px 20px 160px; overflow:hidden;
+}
+/* тёмное небо, луна, дымка у земли */
+.sky{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(circle at 82% 12%, rgba(190,210,230,.16) 0, rgba(190,210,230,.05) 90px, transparent 260px),
+    linear-gradient(180deg,#000 0%, #03050a 45%, #07100d 85%, #0a1511 100%);}
+.sky::after{content:""; position:absolute; left:0; right:0; bottom:0; height:45%;
+  background:linear-gradient(180deg,transparent,rgba(120,150,140,.07));}
+canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none}
+#grass{z-index:0} #snow{z-index:3}
+main{position:relative; z-index:2; width:100%; max-width:440px; text-align:center}
+.avatar{
+  width:108px; height:108px; margin:0 auto 20px; border-radius:50%; overflow:hidden;
+  background:#000; border:1px solid rgba(255,255,255,.35);
+  box-shadow:0 0 0 6px rgba(255,255,255,.05), 0 0 60px -8px rgba(200,225,255,.35);
+}
+.avatar img{width:100%; height:100%; object-fit:cover}
+h1{font:700 28px/1.15 'Unbounded',sans-serif; margin:0 0 6px; letter-spacing:-.01em}
+.handle{color:var(--muted); font-weight:500; margin:0 0 30px}
+.bio{margin:-12px auto 30px; max-width:34ch; line-height:1.6; font-size:17px}
+.bio:empty{display:none}
+.tags{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0; padding:0; list-style:none}
+.tags:not(:empty){margin-bottom:30px}
+.tags li{font-size:13px; padding:6px 12px; border:1px solid var(--line); border-radius:99px; color:var(--muted)}
+.links{display:flex; flex-direction:column; gap:12px}
+.link{
+  display:grid; grid-template-columns:42px 1fr 42px; align-items:center; gap:14px; padding:14px 16px; text-decoration:none; color:inherit; text-align:center;
+  position:relative; border-radius:18px; border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(135deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.04) 45%, rgba(255,255,255,.08) 100%);
+  backdrop-filter:blur(18px) saturate(140%); -webkit-backdrop-filter:blur(18px) saturate(140%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.04), 0 10px 30px -10px rgba(0,0,0,.7);
+  transition:border-color .2s, background .2s, transform .2s, box-shadow .2s;
+}
+.link:hover{border-color:rgba(255,255,255,.4); transform:translateY(-2px);
+  background:linear-gradient(135deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.07) 45%, rgba(255,255,255,.12) 100%)}
+.link:focus-visible{outline:2px solid #fff; outline-offset:3px}
+.ico{flex:none; width:42px; height:42px; border-radius:12px; display:grid; place-items:center;
+  font:700 16px 'Unbounded',sans-serif; color:#fff; background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18); box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
+.txt{flex:1; min-width:0}
+.txt b{display:block; font-weight:600}
+.txt span{display:block; font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.arrow{width:42px; height:42px; visibility:hidden}
+footer{margin-top:34px; font-size:12px; color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.link{transition:none}}
+</style>
+</head>
+<body>
+<div class="sky"></div>
+<canvas id="grass"></canvas>
+<canvas id="snow"></canvas>
+<main>
+  <div class="avatar" id="avatar"></div>
+  <h1 id="name">social networks</h1>
+  <p class="handle" id="handle">/home/tim</p>
+  <p class="bio" id="bio"></p>
+  <ul class="tags" id="tags"></ul>
+  <nav class="links" id="links" aria-label="Мои ссылки"></nav>
+</main>
+
+<script>
+/* ====== РЕДАКТИРУЙ ТОЛЬКО ЭТОТ БЛОК ====== */
+const PROFILE = {
+  name: "social networks",
+  handle: "/home/tim",
+  avatar: "",                       // напр. "avatar.png" (пусто = чёрный кружок)
+  bio: "",
+  tags: [],
+  links: [
+    { title: "Telegram", sub: "Мой профиль",  url: "https://t.me/hometim0" },
+    { title: "GitHub",   sub: "Проекты и код", url: "https://github.com/num1s0la" },
+    { title: "Discord",  sub: "num1s0la",      copy: "num1s0la" }
+  ]
+};
+/* ========================================= */
+
+// копирование: современный способ, а если он недоступен (http, file://, старый браузер) — запасной
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; }
+  } catch (_) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.cssText = "position:fixed; top:0; left:0; opacity:0; -webkit-user-select:text; user-select:text";
+    document.body.appendChild(ta); ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch (_) { return false; }
+}
+
+const $ = id => document.getElementById(id);
+$("name").textContent = PROFILE.name;
+$("handle").textContent = PROFILE.handle;
+$("bio").textContent = PROFILE.bio;
+document.title = PROFILE.name + " — профиль";
+const av = $("avatar");
+if (PROFILE.avatar) { const i = new Image(); i.src = PROFILE.avatar; i.alt = PROFILE.name; av.textContent = ""; av.appendChild(i); }
+/* без картинки аватарка просто чёрная */
+PROFILE.tags.forEach(t => { const li = document.createElement("li"); li.textContent = t; $("tags").appendChild(li); });
+PROFILE.links.forEach(l => {
+  const a = document.createElement("a"); a.className = "link";
+  const ico = document.createElement("div"); ico.className = "ico"; ico.textContent = l.title[0];
+  const txt = document.createElement("div"); txt.className = "txt";
+  const b = document.createElement("b"); b.textContent = l.title;
+  const s = document.createElement("span"); s.textContent = l.sub;
+  txt.append(b, s);
+  if (l.copy) {
+    a.href = "#";
+    a.addEventListener("click", async e => {
+      e.preventDefault();
+      const ok = await copyText(l.copy);
+      s.textContent = ok ? "скопировано!" : "не вышло, ник: " + l.copy;
+      setTimeout(() => s.textContent = l.sub, 1800);
+    });
+  } else { a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer"; }
+  const ar = document.createElement("div"); ar.className = "arrow"; ar.textContent = "›";
+  a.append(ico, txt, ar);
+  $("links").appendChild(a);
+});
+
+/* ====== трава и снег ====== */
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const gc = $("grass"), sc = $("snow"), g = gc.getContext("2d"), s2 = sc.getContext("2d");
+let W, H, DPR, GH, blades = [], flakes = [];
+const rnd = (a, b) => a + Math.random() * (b - a);
+
+// разные оттенки: сочная зелень, оливковая, сине-зелёная, пара сухих и подсвеченных луной травинок
+function shade(L) {
+  const r = Math.random();
+  let h, sat, l = rnd(...L.l);
+  if (r < .62)      { h = rnd(88, 135); sat = rnd(...L.s); }
+  else if (r < .78) { h = rnd(58, 88);  sat = rnd(25, 45); l += 1; }      // оливковая, жёлто-зелёная
+  else if (r < .90) { h = rnd(138, 168); sat = rnd(22, 40); }              // сине-зелёная
+  else if (r < .95) { h = rnd(36, 52);  sat = rnd(14, 26); l += 2; }      // сухая
+  else              { h = rnd(95, 130); sat = rnd(25, 40); l += 8; }      // блик луны
+  return `hsl(${h},${sat}%,${l}%)`;
+}
+
+function build() {
+  DPR = Math.min(window.devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  [gc, sc].forEach(c => { c.width = W * DPR; c.height = H * DPR; });
+  g.setTransform(DPR, 0, 0, DPR, 0, 0); s2.setTransform(DPR, 0, 0, DPR, 0, 0);
+  GH = Math.min(H * 0.36, 320);
+  const cw = Math.min(W, 1500);               // ограничиваем число травинок на широких экранах
+  // три слоя с дымкой между ними: дальний мелкий и размытый, ближний крупный
+  const layers = [
+    { n: cw / 1.4, h: [GH * .25, GH * .5],  w: [1.4, 2.6],  l: [4, 8],   s: [18, 30] },
+    { n: cw / 2.0, h: [GH * .4, GH * .8],   w: [1.8, 3.4], l: [7, 12],  s: [20, 34] },
+    { n: cw / 3.6, h: [GH * .6, GH * 1.15], w: [2.6, 4.6], l: [10, 17], s: [22, 38] }
+  ];
+  blades = [];
+  layers.forEach((L, li) => {
+    for (let i = 0; i < L.n; i++) {
+      blades.push({
+        x: rnd(-10, W + 10), h: rnd(...L.h), w: rnd(...L.w), ph: rnd(0, 6.28), layer: li,
+        col: shade(L),
+        lean: rnd(-1, 1), snow: li === 2 && Math.random() < .12
+      });
+    }
+  });
+  flakes = Array.from({ length: Math.min(170, Math.round(W / 7)) }, () => ({
+    x: rnd(0, W), y: rnd(0, H), r: rnd(.6, 2.6), ph: rnd(0, 6.28)
+  }));
+}
+
+function drawGrass(t) {
+  g.clearRect(0, 0, W, H);
+  // земля под травой, чтобы травинки не «висели»
+  const gr = g.createLinearGradient(0, H - 26, 0, H);
+  gr.addColorStop(0, "rgba(6,10,8,0)"); gr.addColorStop(1, "rgba(6,10,8,1)");
+  g.fillStyle = gr; g.fillRect(0, H - 26, W, 26);
+
+  let cur = -1;
+  for (const b of blades) {
+    if (b.layer !== cur) {
+      if (cur >= 0 && cur < 2) {                          // дымка между слоями — глубина
+        const fg = g.createLinearGradient(0, H - GH * 1.2, 0, H);
+        fg.addColorStop(0, "rgba(10,18,16,0)"); fg.addColorStop(1, "rgba(10,18,16,.35)");
+        g.fillStyle = fg; g.fillRect(0, H - GH * 1.2, W, GH * 1.2);
+      }
+      cur = b.layer;
+    }
+    // бегущая по полю волна ветра + порывы, которые идут вдоль поля
+    const wave = Math.sin(b.x * .004 - t * .0013) * .55 + Math.sin(b.x * .011 - t * .0023 + 1.7) * .3;
+    const env = Math.pow(.5 + .5 * Math.sin(t * .00032 - b.x * .0014), 2);       // порыв: то стихает, то усиливается
+    const wind = .3 + env * .7;
+    const flutter = Math.sin(t * .006 + b.ph * 3) * .015 * (.4 + env);            // мелкая дрожь
+    // изгиб как у настоящей травинки: основание неподвижно, смещение растёт к кончику по параболе
+    const d = (b.lean * .1 + wave * wind * .3 + wind * .1 + flutter) * b.h;
+    const bx = b.x, by = H + 2, tx = bx + d, ty = by - b.h * (1 - Math.abs(d) / b.h * .12);
+    const cx = bx, cy = by - b.h * .5;
+    g.fillStyle = b.col;
+    g.beginPath();
+    g.moveTo(bx - b.w, by);
+    g.quadraticCurveTo(cx - b.w * .45, cy, tx, ty);
+    g.quadraticCurveTo(cx + b.w * .45, cy, bx + b.w, by);
+    g.fill();
+    if (b.snow) { g.fillStyle = "rgba(235,242,248,.8)"; g.beginPath(); g.arc(tx, ty + 1, 1.1, 0, 6.283); g.fill(); }
+  }
+  // тень у корней
+  const sh = g.createLinearGradient(0, H - GH * .7, 0, H);
+  sh.addColorStop(0, "rgba(0,0,0,0)"); sh.addColorStop(1, "rgba(0,0,0,.45)");
+  g.fillStyle = sh; g.fillRect(0, H - GH * .7, W, GH * .7);
+}
+
+function drawSnow(t, dt) {
+  s2.clearRect(0, 0, W, H);
+  const wind = Math.sin(t * .0004) * .25 + .12;
+  for (const f of flakes) {
+    if (!still) {
+      f.y += (f.r * .28 + .35) * dt * .06;
+      f.x += (Math.sin(t * .001 + f.ph) * .25 + wind * f.r * .5) * dt * .06;
+      if (f.y > H + 5) { f.y = -5; f.x = rnd(0, W); }
+      if (f.x > W + 5) f.x = -5; else if (f.x < -5) f.x = W + 5;
+    }
+    s2.fillStyle = `rgba(255,255,255,${.35 + f.r * .2})`;
+    s2.beginPath(); s2.arc(f.x, f.y, f.r, 0, 6.283); s2.fill();
+  }
+}
+
+let last = 0;
+function frame(t) {
+  const dt = Math.min(t - last, 50); last = t;
+  drawGrass(t); drawSnow(t, dt);
+  if (!still) requestAnimationFrame(frame);
+}
+build(); requestAnimationFrame(frame);
+let rz; addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { build(); if (still) frame(0); }, 150); });
+</script>
+</body>
+</html>
