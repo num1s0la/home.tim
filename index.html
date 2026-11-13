@@ -36,7 +36,7 @@ canvas{position:fixed; inset:0; width:100%; height:100%; pointer-events:none}
 @media (pointer:coarse){#cursor{display:none}}
 
 main{position:relative; z-index:5; width:100%; max-width:440px; text-align:center}
-.rise{opacity:0; animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards}
+.rise{animation:rise .9s cubic-bezier(.2,.8,.2,1) backwards}
 @keyframes rise{from{opacity:0; transform:translateY(22px)} to{opacity:1; transform:translateY(0)}}
 
 .avatar-wrap{position:relative; width:124px; height:124px; margin:0 auto 22px}
@@ -87,15 +87,16 @@ h1.armed{text-shadow:0 0 18px rgba(190,215,255,.7)}
 }
 .link::before{content:""; position:absolute; top:0; left:-90%; width:55%; height:100%;
   background:linear-gradient(105deg, transparent, rgba(255,255,255,.28), transparent);
-  transform:skewX(-20deg); transition:left .7s ease; pointer-events:none}
-.link:hover::before{left:140%}
-.link:hover{border-color:rgba(255,255,255,.45);
-  background:linear-gradient(135deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.07) 45%, rgba(255,255,255,.12) 100%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 30px -4px rgba(190,215,255,.35), 0 16px 36px -12px rgba(0,0,0,.8)}
+  transform:skewX(-20deg); pointer-events:none}
+@media (hover:hover){
+  .link:hover::before{left:140%; transition:left .7s ease}
+  .link:hover{border-color:rgba(255,255,255,.45);
+    background:linear-gradient(135deg, rgba(255,255,255,.2) 0%, rgba(255,255,255,.07) 45%, rgba(255,255,255,.12) 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.3), 0 0 30px -4px rgba(190,215,255,.35), 0 16px 36px -12px rgba(0,0,0,.8)}
+  .link:hover .arrow{opacity:1; transform:translateX(0)}
+}
 .link:active{transform:scale(.97)!important}
 .link:focus-visible{outline:2px solid #fff; outline-offset:3px}
-.link.flash{animation:flash .7s ease}
-@keyframes flash{0%{border-color:rgba(255,255,255,.9); box-shadow:0 0 40px -2px rgba(200,225,255,.7)} 100%{}}
 .ico{flex:none; width:46px; height:46px; border-radius:13px; display:grid; place-items:center;
   background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.18);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
@@ -105,7 +106,6 @@ h1.armed{text-shadow:0 0 18px rgba(190,215,255,.7)}
 .txt span{display:block; font-size:13px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .arrow{width:46px; height:46px; display:grid; place-items:center; color:var(--muted); font-size:22px;
   opacity:0; transform:translateX(-6px); transition:opacity .25s, transform .25s}
-.link:hover .arrow{opacity:1; transform:translateX(0)}
 .ripple{position:absolute; border-radius:50%; background:rgba(255,255,255,.35); transform:scale(0);
   animation:rip .6s ease-out forwards; pointer-events:none}
 @keyframes rip{to{transform:scale(3.2); opacity:0}}
@@ -145,11 +145,38 @@ body.locked .link{pointer-events:none}
 body.glitch h1, body.glitch .handle, body.glitch .txt b{text-shadow:2px 0 rgba(255,40,80,.7), -2px 0 rgba(40,220,255,.7)}
 body.glitch .link{border-color:rgba(255,255,255,.35)}
 
+@media (min-width:900px) and (pointer:fine){
+  main{max-width:580px}
+  .avatar-wrap,.avatar{width:164px; height:164px}
+  .avatar-wrap{margin-bottom:28px}
+  .status{width:26px; height:26px; right:8px; bottom:10px}
+  h1{font-size:40px; margin-bottom:8px}
+  .handle{font-size:19px; margin-bottom:34px}
+  .links{gap:16px}
+  .link{grid-template-columns:60px 1fr 60px; padding:20px 24px; border-radius:22px; gap:18px}
+  .ico{width:60px; height:60px; border-radius:16px}
+  .ico svg{width:30px; height:30px}
+  .txt b{font-size:21px}
+  .txt span{font-size:15px}
+  .arrow{width:60px; height:60px; font-size:26px}
+  .term{width:min(680px,92vw); font-size:14px}
+  body{padding-bottom:170px}
+}
 @media (prefers-reduced-motion:reduce){
   .link{transition:none}
   .rise,.avatar,.avatar-wrap::before,.status{animation:none!important; opacity:1!important}
 }
+#err{display:none; position:fixed; left:8px; right:8px; bottom:8px; z-index:99; padding:6px 10px; border-radius:8px;
+  font:11px/1.4 ui-monospace,Menlo,Consolas,monospace; color:#ff9a9a; background:rgba(0,0,0,.75); pointer-events:none; word-break:break-all}
+.ns span{display:block}
 </style>
+<script>
+window.addEventListener("error", function (e) {
+  var d = document.getElementById("err"); if (!d) return;
+  d.style.display = "block";
+  d.textContent = "js error: " + (e.message || "?") + (e.lineno ? " (строка " + e.lineno + ")" : "");
+});
+</script>
 </head>
 <body>
 <div class="sky"></div>
@@ -169,7 +196,14 @@ body.glitch .link{border-color:rgba(255,255,255,.35)}
   <p class="bio rise" style="animation-delay:.35s" id="bio"></p>
   <ul class="tags rise" style="animation-delay:.45s" id="tags"></ul>
   <nav class="links" id="links" aria-label="Мои ссылки"></nav>
+  <nav class="links ns" aria-label="Мои ссылки"><noscript>
+    <a class="link" href="https://t.me/hometim0"><span></span><div class="txt"><b>Telegram</b><span>@hometim0</span></div><span></span></a>
+    <a class="link" href="https://github.com/num1s0la"><span></span><div class="txt"><b>GitHub</b><span>num1s0la</span></div><span></span></a>
+    <a class="link" href="https://discord.com/users/num1s0la"><span></span><div class="txt"><b>Discord</b><span>num1s0la</span></div><span></span></a>
+  </noscript></nav>
 </main>
+
+<div id="err"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -265,7 +299,6 @@ PROFILE.links.forEach((l, idx) => {
     a.addEventListener("click", async e => {
       e.preventDefault();
       const ok = await copyText(l.copy);
-      a.classList.remove("flash"); void a.offsetWidth; a.classList.add("flash");
       if (ok) {
         s.textContent = "скопировано!";
         showToast("Скопировано: " + l.copy);
@@ -335,43 +368,4 @@ function build() {
 
   stars = Array.from({ length: Math.min(150, Math.round(W / 9)) }, () => ({
     x: rnd(0, W), y: rnd(0, H * 0.68),
-    r: rnd(.4, 1.5), ph: rnd(0, 6.28), spd: rnd(.0008, .0025), base: rnd(.25, .8)
-  }));
-
-  GH = Math.min(H * 0.36, 320);
-  const cw = Math.min(W, 1500);
-  const layers = [
-    { n: cw / 1.4, h: [GH * .25, GH * .5],  w: [1.4, 2.6], l: [4, 8],   s: [18, 30] },
-    { n: cw / 2.0, h: [GH * .4, GH * .8],   w: [1.8, 3.4], l: [7, 12],  s: [20, 34] },
-    { n: cw / 3.6, h: [GH * .6, GH * 1.15], w: [2.6, 4.6], l: [10, 17], s: [22, 38] }
-  ];
-  blades = [];
-  layers.forEach((L, li) => {
-    for (let i = 0; i < L.n; i++) {
-      blades.push({
-        x: rnd(-10, W + 10), h: rnd(...L.h), w: rnd(...L.w), ph: rnd(0, 6.28), layer: li,
-        col: shade(L), lean: rnd(-1, 1), snow: li === 2 && Math.random() < .12
-      });
-    }
-  });
-  flakes = Array.from({ length: Math.min(180, Math.round(W / 7)) }, () => ({
-    x: rnd(0, W), y: rnd(0, H), r: rnd(.6, 2.6), ph: rnd(0, 6.28)
-  }));
-}
-
-function drawStars(t) {
-  st.clearRect(0, 0, W, H);
-  for (const s of stars) {
-    const tw = still ? 1 : (.6 + .4 * Math.sin(t * s.spd + s.ph));
-    st.globalAlpha = s.base * tw;
-    st.fillStyle = "#dfe8ff";
-    st.beginPath(); st.arc(s.x, s.y, s.r, 0, 6.283); st.fill();
-  }
-  st.globalAlpha = 1;
-  if (!still && t > nextShoot && !shooters.length) {      // только одна за раз
-    nextShoot = t + rnd(2500, 6000);
-    const sx = rnd(W * .2, W * 1.05), sy = rnd(10, H * .5);   // каждый раз из нового места
-    const ang = rnd(2.7, 3.05);               // строго влево, чуть вниз
-    shooters.push({ x: sx, y: sy, vx: Math.cos(ang) * 9, vy: Math.sin(ang) * 4.5, life: 1 });
-  }
-  for (let i = shooters.leng
+    r: rnd(.4, 1.5), ph: rnd(0, 6.28),
